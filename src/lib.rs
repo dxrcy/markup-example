@@ -87,11 +87,13 @@ pub fn compile(file: &str) -> Result<String, String> {
             }
 
             // Default formatting
-            Style::no_format(&line)
+            Some(Style::no_format(&line))
         };
 
-        // Add line to body
-        body.push(formatted_line);
+        // Add line to body if not None
+        if let Some(formatted_line) = formatted_line {
+            body.push(formatted_line);
+        }
     }
 
     // Close final list, if active
@@ -101,7 +103,7 @@ pub fn compile(file: &str) -> Result<String, String> {
 
     // Complete template with body
     let html = include_str!("template.html")
-        .replace("{{BODY}}", &body.join("\n"))
+        .replace("{{BODY}}", &body.join("\n    "))
         .replace("{{TITLE}}", &title.unwrap_or("Markup File".to_string()));
 
     // Return html, including template

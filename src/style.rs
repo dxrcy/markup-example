@@ -17,13 +17,6 @@ pub enum Style {
 }
 
 impl Style {
-    /// Default line style
-    ///
-    /// Formats line with `<p>` tag
-    pub fn no_format(line: &str) -> String {
-        format!("<p> {} </p>", line)
-    }
-
     /// Split file line into optional line style and rest of line
     ///
     /// Returns `None` as style if token does not match
@@ -63,8 +56,8 @@ impl Style {
     }
 
     /// Format line using style kind
-    pub fn format(self, line: &str) -> String {
-        match self {
+    pub fn format(self, line: &str) -> Option<String> {
+        Some(match self {
             // Use depth in html tag
             Header(n) => format!("<h{n}> {} </h{n}>", line),
 
@@ -73,8 +66,15 @@ impl Style {
 
             Quote => format!("<blockquote> {} </blockquote>", line),
             HorizontalLine => String::from("<hr />"),
-            Comment => String::new(),
-        }
+            Comment => return None,
+        })
+    }
+
+    /// Default line style
+    ///
+    /// Formats line with `<p>` tag
+    pub fn no_format(line: &str) -> String {
+        format!("<p> {} </p>", line)
     }
 }
 
@@ -140,18 +140,21 @@ mod tests {
     #[test]
     fn style_format_works() {
         // Headers
-        assert_eq!(Header(1).format("Hello"), "<h1> Hello </h1>");
-        assert_eq!(Header(2).format("Hello"), "<h2> Hello </h2>");
-        assert_eq!(Header(3).format("Hello"), "<h3> Hello </h3>");
-        assert_eq!(Header(4).format("Hello"), "<h4> Hello </h4>");
+        assert_eq!(Header(1).format("Hello").unwrap(), "<h1> Hello </h1>");
+        assert_eq!(Header(2).format("Hello").unwrap(), "<h2> Hello </h2>");
+        assert_eq!(Header(3).format("Hello").unwrap(), "<h3> Hello </h3>");
+        assert_eq!(Header(4).format("Hello").unwrap(), "<h4> Hello </h4>");
 
         // Lists (not affected by list kind)
-        assert_eq!(List(Ordered).format("Hello"), "<li> Hello </li>");
-        assert_eq!(List(Unordered).format("Hello"), "<li> Hello </li>");
+        assert_eq!(List(Ordered).format("Hello").unwrap(), "<li> Hello </li>");
+        assert_eq!(List(Unordered).format("Hello").unwrap(), "<li> Hello </li>");
 
         // Other
-        assert_eq!(Quote.format("Hello"), "<blockquote> Hello </blockquote>");
-        assert_eq!(HorizontalLine.format("Hello"), "<hr />");
-        assert_eq!(Comment.format("Hello"), "");
+        assert_eq!(
+            Quote.format("Hello").unwrap(),
+            "<blockquote> Hello </blockquote>"
+        );
+        assert_eq!(HorizontalLine.format("Hello").unwrap(), "<hr />");
+        assert_eq!(Comment.format("Hello").unwrap(), "");
     }
 }
