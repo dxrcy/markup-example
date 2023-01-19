@@ -2,6 +2,8 @@
 
 An example of a custom markup to html compiler.
 
+[Syntax Highlighting VSCode Extension](https://github.com/darccyy/markdown-example-syntax)
+
 ```ps1
 cargo run -- index.mu
 ```
