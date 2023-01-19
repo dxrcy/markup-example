@@ -5,7 +5,7 @@ use std::fs;
 use clap::Parser;
 
 use args::Args;
-use markup::compile;
+use markup::{compile, replace_file_extension};
 
 fn main() {
     // Parse CLI arguments
@@ -25,28 +25,4 @@ fn main() {
 
     // Write file
     fs::write(out, file_out).expect("Could not write output file");
-}
-
-/// Change filename extension to another string
-///
-/// All characters after last dot are included in extension
-///
-/// All characters (including dots), except everything after last dot, are included in filename
-fn replace_file_extension(filename: &str, extension: &str) -> String {
-    let mut split_at_dot = filename.split('.');
-
-    let last = split_at_dot.next_back().unwrap_or("");
-    let rest = split_at_dot.collect::<Vec<_>>();
-
-    let filename = if rest.is_empty() {
-        last.to_string()
-    } else {
-        rest.join(".")
-    };
-
-    if extension.is_empty() {
-        return filename;
-    }
-
-    filename + "." + extension
 }

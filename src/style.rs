@@ -155,6 +155,7 @@ mod tests {
             "<blockquote> Hello </blockquote>"
         );
         assert_eq!(HorizontalLine.format("Hello").unwrap(), "<hr />");
-        assert_eq!(Comment.format("Hello").unwrap(), "");
+        // Comment
+        assert_eq!(Comment.format("Hello"), None);
     }
 }
