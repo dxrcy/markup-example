@@ -18,6 +18,10 @@ pub fn compile(file: &str) -> Result<String, String> {
 
     // Html body contents
     let mut body = Vec::<String>::new();
+
+    // Title of page
+    let mut title: Option<String> = None;
+
     // Currently active list kind
     let mut current_list: Option<ListKind> = None;
 
@@ -66,15 +70,24 @@ pub fn compile(file: &str) -> Result<String, String> {
             };
 
             // Format line with style
-            style.format(&line)
+            let formatted_line = style.format(&line);
+
+            // Set title, if not set, and is <h1>
+            if title.is_none() {
+                if let Header(1) = style {
+                    title = Some(line);
+                }
+            }
+
+            formatted_line
         } else {
             // Skip blank lines
             if line.is_empty() {
                 continue;
             }
 
-            // No formatting
-            format!("<p> {} </p>", line)
+            // Default formatting
+            Style::no_format(&line)
         };
 
         // Add line to body
@@ -87,7 +100,9 @@ pub fn compile(file: &str) -> Result<String, String> {
     }
 
     // Complete template with body
-    let html = include_str!("template.html").replace("{{BODY}}", &body.join("\n"));
+    let html = include_str!("template.html")
+        .replace("{{BODY}}", &body.join("\n"))
+        .replace("{{TITLE}}", &title.unwrap_or("Markup File".to_string()));
 
     // Return html, including template
     Ok(html)

@@ -17,6 +17,13 @@ pub enum Style {
 }
 
 impl Style {
+    /// Default line style
+    ///
+    /// Formats line with `<p>` tag
+    pub fn no_format(line: &str) -> String {
+        format!("<p> {} </p>", line)
+    }
+
     /// Split file line into optional line style and rest of line
     ///
     /// Returns `None` as style if token does not match
