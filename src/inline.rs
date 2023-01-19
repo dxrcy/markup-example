@@ -76,7 +76,7 @@ pub fn format_inlines(line: &str) -> String {
                     // Add link to formatted line
                     if let Some(link) = current_link {
                         let (content, href) = separate_link_content(&link);
-                        formatted_line.push_str(&format!(r#"<a href="{href}"> {content} </a>"#));
+                        formatted_line.push_str(&format!(r#"<a href="{href}">{}</a>"#, content));
                     }
                     // Reset link
                     current_link = None;
