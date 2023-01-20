@@ -18,11 +18,9 @@ fn main() {
         .unwrap_or(replace_file_extension(&args.file, "html"));
 
     // Read file
-    let file_in = fs::read_to_string(args.file).expect("Could not read input file");
-
+    let file_contents = fs::read_to_string(args.file).expect("Could not read input file");
     // Compile
-    let file_out = compile(&file_in).expect("Failed to compile");
-
+    let file_compiled = compile(&file_contents);
     // Write file
-    fs::write(out, file_out).expect("Could not write output file");
+    fs::write(out, file_compiled).expect("Could not write output file");
 }

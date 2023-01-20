@@ -22,7 +22,7 @@ impl Style {
     /// Returns `None` as style if token does not match
     pub fn from(line: &str) -> (Option<Self>, &str) {
         // Split line into token and rest of line
-        let (token, rest_of_line) = match line.find(' ') {
+        let (style_token, rest_of_line) = match line.find(' ') {
             // Line contains space
             Some(position) => line.split_at(position),
 
@@ -32,7 +32,7 @@ impl Style {
         };
 
         // Match token string to style enum
-        let style = match token {
+        let style = match style_token {
             // Headers
             s if Regex::new(r"^#+$").unwrap().is_match(s) => Header(s.len()),
 
@@ -42,7 +42,7 @@ impl Style {
             // Ordered list
             s if Regex::new(r"^\d+\.$").unwrap().is_match(s) => List(ListKind::Ordered),
 
-            ">" | "&gt;" => Quote, // This must include html-escaped less-than character
+            ">" | "&gt;" => Quote, // This must include html-escaped greater-than character
             "---" => HorizontalLine,
             "~~~" => Comment,
 
@@ -56,13 +56,13 @@ impl Style {
     }
 
     /// Format line using style kind
-    pub fn format(self, line: &str) -> Option<String> {
+    pub fn format(&self, line: &str) -> Option<String> {
         Some(match self {
             // Use depth in html tag
             Header(n) => format!("<h{n}> {} </h{n}>", line),
 
             // Not affected by list kind
-            List(_) => format!("<li> {} </li>", line),
+            List(_) => format!("  <li> {} </li>", line),
 
             Quote => format!("<blockquote> {} </blockquote>", line),
             HorizontalLine => String::from("<hr />"),
@@ -146,8 +146,8 @@ mod tests {
         assert_eq!(Header(4).format("Hello").unwrap(), "<h4> Hello </h4>");
 
         // Lists (not affected by list kind)
-        assert_eq!(List(Ordered).format("Hello").unwrap(), "<li> Hello </li>");
-        assert_eq!(List(Unordered).format("Hello").unwrap(), "<li> Hello </li>");
+        assert_eq!(List(Ordered).format("Hello").unwrap(), "  <li> Hello </li>");
+        assert_eq!(List(Unordered).format("Hello").unwrap(), "  <li> Hello </li>");
 
         // Other
         assert_eq!(

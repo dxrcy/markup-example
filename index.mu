@@ -1,8 +1,8 @@
-# Example File
+# Example file
 
 Reprehenderit incididunt elit elit non. Mollit esse tempor occaecat laboris id incididunt ut cupidatat laborum ut. Culpa ullamco amet in veniam irure nulla laborum ex deserunt enim esse sunt Lorem minim.
 
-## Inline Formatting
+## Header
 
 *This should be italicized*
 
@@ -18,7 +18,9 @@ This is an escaped backslash: \\
 
 ^Inline styles can _be nested_ *like _this_*^
 
-[This is a link | https://example.com], but \[this is not a link\]
+[This is a link | https://example.com]
+
+\[this is not a link\]
 
 ---
 
@@ -26,19 +28,18 @@ This is an escaped backslash: \\
 
 > This is a block quote
 
-> This is a
 > Multiline
 > Block quote
 
-### Another subheading
+### Subheading
 
-#### And yet another subheading
+#### Another Subheading
 
 <script> This html code will be sanitized, and appear as text! </script>
 
+
+
 ## Lists
-
-
 
 - This is
 - An unordered
@@ -50,3 +51,4 @@ This is an escaped backslash: \\
 - another unordered list
 10. another ordered list
 some more text
+

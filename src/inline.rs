@@ -68,15 +68,15 @@ pub fn format_inlines(line: &str) -> String {
                     current_inlines.code ^= true;
                 }
 
-                // Start link
+                // Open link
                 '[' if current_link.is_none() => current_link = Some(String::new()),
 
-                // End link
+                // Close link
                 ']' if current_link.is_some() => {
                     // Add link to formatted line
                     if let Some(link) = current_link {
-                        let (content, href) = separate_link_content(&link);
-                        formatted_line.push_str(&format!(r#"<a href="{href}">{}</a>"#, content));
+                        let (text, href) = separate_link_parts(&link);
+                        formatted_line.push_str(&format!(r#"<a href="{href}">{}</a>"#, text));
                     }
                     // Reset link
                     current_link = None;
@@ -95,23 +95,19 @@ pub fn format_inlines(line: &str) -> String {
 
         // Character is backslash, and not escaped
         // Escape next character
-        if ch == '\\' && !is_char_escaped {
-            is_char_escaped = true;
-        } else {
-            is_char_escaped = false;
-        }
+        is_char_escaped = ch == '\\' && !is_char_escaped;
     }
 
     formatted_line
 }
 
-/// Split raw link content into href and text content
+/// Split raw link parts into href and text content
 ///
 /// Separates at pipe `|`
-fn separate_link_content(link: &str) -> (&str, &str) {
+fn separate_link_parts(link: &str) -> (&str, &str) {
     if let Some(pos) = find_back(link, '|') {
-        let (a, b) = link.split_at(pos);
-        (a.trim(), remove_first_char(b).trim())
+        let (text, href) = link.split_at(pos);
+        (text.trim(), remove_first_char(href).trim())
     } else {
         (link, "")
     }
@@ -129,7 +125,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn format_works() {
+    fn format_styles_works() {
         // Normal inlines
         assert_eq!(
             format_inlines("Some *example* text"),
@@ -182,33 +178,33 @@ mod tests {
     #[test]
     fn separate_link_content_works() {
         assert_eq!(
-            separate_link_content("link content | https://example.com"),
+            separate_link_parts("link content | https://example.com"),
             ("link content", "https://example.com")
         );
 
         assert_eq!(
-            separate_link_content("link | example | content | https://example.com"),
+            separate_link_parts("link | example | content | https://example.com"),
             ("link | example | content", "https://example.com")
         );
 
-        assert_eq!(separate_link_content("link content"), ("link content", ""));
+        assert_eq!(separate_link_parts("link content"), ("link content", ""));
     }
 
     #[test]
     fn format_links_works() {
         assert_eq!(
             format_inlines("[link content | https://example.com]"),
-            r#"<a href="https://example.com"> link content </a>"#
+            r#"<a href="https://example.com">link content</a>"#
         );
 
         assert_eq!(
             format_inlines("[link | example | content | https://example.com]"),
-            r#"<a href="https://example.com"> link | example | content </a>"#
+            r#"<a href="https://example.com">link | example | content</a>"#
         );
 
         assert_eq!(
             format_inlines("[link content]"),
-            r#"<a href=""> link content </a>"#
+            r#"<a href="">link content</a>"#
         );
 
         assert_eq!(format_inlines(r"\[no link\]"), r#"[no link]"#);

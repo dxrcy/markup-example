@@ -7,23 +7,22 @@ use crate::{
     inline::format_inlines,
     style::{
         ListKind,
-        Style::{self, *},
+        Style::{self, Header, List},
     },
 };
 
 /// Compile a markup file to html
-pub fn compile(file: &str) -> Result<String, String> {
+pub fn compile(file: &str) -> String {
     // Sanitize (escape) html
     let file = html_escape::encode_text(file);
 
-    // Html body contents
-    let mut body = Vec::<String>::new();
-
+    // Currently active list kind
+    let mut current_list: Option<ListKind> = None;
     // Title of page
     let mut title: Option<String> = None;
 
-    // Currently active list kind
-    let mut current_list: Option<ListKind> = None;
+    // Html body contents
+    let mut body = Vec::<String>::new();
 
     for line in file.lines() {
         // Split line into token and rest of line
@@ -32,9 +31,8 @@ pub fn compile(file: &str) -> Result<String, String> {
         // Format line with inline styles and links
         let line = format_inlines(line);
 
-        // If style is None or style is not list
-        // Unwrap should never fail
-        if style.is_none() || !matches!(style.as_ref().unwrap(), List(_)) {
+        // If style is not list (including None)
+        if style.is_none() || !matches!(style, Some(List(_))) {
             // If current list is active
             if let Some(current) = current_list {
                 body.push(current.closing_tag().into());
@@ -42,52 +40,59 @@ pub fn compile(file: &str) -> Result<String, String> {
             }
         }
 
-        // Format line with line token, if token is Some
-        let formatted_line = if let Some(style) = style {
-            // If current style is a list
-            if let List(style) = &style {
-                // If current list is active
-                if let Some(current) = &current_list {
-                    // If list types do not match
-                    if current != style {
-                        // Close previous list
-                        body.push(current.closing_tag().into());
+        // Format line
+        let formatted_line = match style {
+            // Format line with line token, if token is Some
+            Some(style) => {
+                // Close and open lists
+                // If current style is a list
+                if let List(style) = &style {
+                    match &current_list {
+                        // Current list is active
+                        Some(current) => {
+                            // If list types do not match
+                            if current != style {
+                                // Close previous list
+                                body.push(current.closing_tag().into());
+
+                                // Open new list
+                                body.push(style.opening_tag().into());
+                            }
+                        }
+
+                        // Current list is not active
+                        None => {
+                            // Open new list
+                            body.push(style.opening_tag().into());
+                        }
                     }
                 }
 
-                // If current list is not active, or current list does not match style list
-                // Unwrap should never fail
-                if current_list.is_none() || &current_list.unwrap() != style {
-                    // Open new list
-                    body.push(style.opening_tag().into());
-                }
-            }
+                // Set current list to style (if is list), otherwise None
+                current_list = match &style {
+                    List(list) => Some(*list),
+                    _ => None,
+                };
 
-            // Set current list to style (if is list), otherwise None
-            current_list = match &style {
-                List(list) => Some(*list),
-                _ => None,
-            };
+                // Format line with style
+                let formatted_line = style.format(&line);
 
-            // Format line with style
-            let formatted_line = style.format(&line);
-
-            // Set title, if not set, and is <h1>
-            if title.is_none() {
-                if let Header(1) = style {
+                // Set title, if not set, and is <h1>
+                if title.is_none() && matches!(style, Header(1)) {
                     title = Some(line);
                 }
-            }
 
-            formatted_line
-        } else {
-            // Skip blank lines
-            if line.is_empty() {
-                continue;
+                formatted_line
             }
+            None => {
+                // Skip blank line
+                if line.is_empty() {
+                    continue;
+                }
 
-            // Default formatting
-            Some(Style::no_format(&line))
+                // Default formatting
+                Some(Style::no_format(&line))
+            }
         };
 
         // Add line to body if not None
@@ -102,12 +107,9 @@ pub fn compile(file: &str) -> Result<String, String> {
     }
 
     // Complete template with body
-    let html = include_str!("template.html")
+    include_str!("template.html")
         .replace("{{BODY}}", &body.join("\n    "))
-        .replace("{{TITLE}}", &title.unwrap_or("Markup File".to_string()));
-
-    // Return html, including template
-    Ok(html)
+        .replace("{{TITLE}}", &title.unwrap_or("Markup File".to_string()))
 }
 
 /// Find position of character in string, from back
@@ -119,7 +121,6 @@ pub fn find_back(s: &str, c: char) -> Option<usize> {
             return s.len().checked_sub(i + 1);
         }
     }
-
     None
 }
 
@@ -132,7 +133,7 @@ pub fn replace_file_extension(filename: &str, extension: &str) -> String {
     // Find position of last period
     let filename = match find_back(filename, '.') {
         // Split whole filename at that position
-        Some(pos) => filename.split_at(pos).0,
+        Some(position) => filename.split_at(position).0,
         // No period - Use whole filename
         None => filename,
     };

@@ -6,6 +6,8 @@ An example of a custom markup to html compiler.
 
 ```ps1
 cargo run -- index.mu
+
+cargo run -- index.mu index.html
 ```
 
 ```rs
