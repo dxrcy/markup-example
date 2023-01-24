@@ -85,13 +85,13 @@ pub fn compile(file: &str) -> String {
                 formatted_line
             }
             None => {
-                // Skip blank line
                 if line.is_empty() {
-                    continue;
+                    // Skip blank line
+                    None
+                } else {
+                    // Default formatting
+                    Some(Style::no_format(&line))
                 }
-
-                // Default formatting
-                Some(Style::no_format(&line))
             }
         };
 
@@ -130,11 +130,9 @@ pub fn find_back(s: &str, c: char) -> Option<usize> {
 ///
 /// All characters (including dots), except everything after last dot, are included in filename
 pub fn replace_file_extension(filename: &str, extension: &str) -> String {
-    // Find position of last period
+    // Get filename without extension
     let filename = match find_back(filename, '.') {
-        // Split whole filename at that position
         Some(position) => filename.split_at(position).0,
-        // No period - Use whole filename
         None => filename,
     };
 

@@ -75,7 +75,7 @@ pub fn format_inlines(line: &str) -> String {
                 ']' if current_link.is_some() => {
                     // Add link to formatted line
                     if let Some(link) = current_link {
-                        let (text, href) = separate_link_parts(&link);
+                        let (text, href) = separate_link(&link);
                         formatted_line.push_str(&format!(r#"<a href="{href}">{}</a>"#, text));
                     }
                     // Reset link
@@ -104,12 +104,13 @@ pub fn format_inlines(line: &str) -> String {
 /// Split raw link parts into href and text content
 ///
 /// Separates at pipe `|`
-fn separate_link_parts(link: &str) -> (&str, &str) {
-    if let Some(pos) = find_back(link, '|') {
-        let (text, href) = link.split_at(pos);
-        (text.trim(), remove_first_char(href).trim())
-    } else {
-        (link, "")
+fn separate_link(link: &str) -> (&str, &str) {
+    match find_back(link, '|') {
+        Some(pos) => {
+            let (text, href) = link.split_at(pos);
+            (text.trim(), remove_first_char(href).trim())
+        }
+        None => (link, ""),
     }
 }
 
@@ -176,18 +177,18 @@ mod tests {
     }
 
     #[test]
-    fn separate_link_content_works() {
+    fn separate_link_works() {
         assert_eq!(
-            separate_link_parts("link content | https://example.com"),
+            separate_link("link content | https://example.com"),
             ("link content", "https://example.com")
         );
 
         assert_eq!(
-            separate_link_parts("link | example | content | https://example.com"),
+            separate_link("link | example | content | https://example.com"),
             ("link | example | content", "https://example.com")
         );
 
-        assert_eq!(separate_link_parts("link content"), ("link content", ""));
+        assert_eq!(separate_link("link content"), ("link content", ""));
     }
 
     #[test]

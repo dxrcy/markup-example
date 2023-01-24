@@ -25,7 +25,6 @@ impl Style {
         let (style_token, rest_of_line) = match line.find(' ') {
             // Line contains space
             Some(position) => line.split_at(position),
-
             // Line contains no space
             // Use whole line as token, and rest of line blank
             None => (line, ""),
@@ -34,13 +33,13 @@ impl Style {
         // Match token string to style enum
         let style = match style_token {
             // Headers
-            s if Regex::new(r"^#+$").unwrap().is_match(s) => Header(s.len()),
+            token if Regex::new(r"^#+$").unwrap().is_match(token) => Header(token.len()),
 
             // Unordered list
             "-" => List(ListKind::Unordered),
 
             // Ordered list
-            s if Regex::new(r"^\d+\.$").unwrap().is_match(s) => List(ListKind::Ordered),
+            token if Regex::new(r"^\d+\.$").unwrap().is_match(token) => List(ListKind::Ordered),
 
             ">" | "&gt;" => Quote, // This must include html-escaped greater-than character
             "---" => HorizontalLine,
@@ -81,9 +80,9 @@ impl Style {
 /// Kind of list for `Style` enum
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum ListKind {
-    /// Unordered list variant
+    /// Unordered list
     Unordered,
-    /// Ordered list variant
+    /// Ordered list
     Ordered,
 }
 
